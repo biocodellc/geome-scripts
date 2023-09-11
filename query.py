@@ -49,36 +49,19 @@ def execute_sql_query(connection, sql, phototype):
                 if column_name == "data":
                     json_data = row[column_names.index(column_name)]
                     img128 = json_data.get('img128')  # Extract the 'img128' attribute
-                photo_id = row[column_names.index("id")]
-                expedition = row[column_names.index("expedition")]
-                parent_identifier = row[column_names.index("parent_identifier")]
+                    imageProcessingErrors = json_data.get('imageProcessingErrors')
 
-            data = {
-                   "photo_id": photo_id,
-                   "expedition": expedition,
-                   "parent_identifier": parent_identifier,
-                   "img128": img128 }
-            if not is_image_url_valid(img128):
-                imgs_not_found.append(data)
+                #expedition_id = row[column_names.index('expedition_id')]
 
-        # Define the CSV file name
-        csv_file = phototype + "_not_found.csv"
-
-        # Define the CSV field names (headers)
-        field_names = ["photo_id", "expedition", "parent_identifier", "img128"]
-
-        # Write the data to the CSV file
-        with open(csv_file, mode="w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=field_names)
-    
-            # Write headers to the CSV file
-            writer.writeheader()
-    
-            # Write data items to the CSV file
-            for data_item in imgs_not_found:
-                writer.writerow(data_item)
-
-        print(f"CSV file '{csv_file}' has been created with headers and data.")
+            if imageProcessingErrors is not None:
+                #print("."+imageProcessingErrors+".")
+                
+                if img128 is None:
+                    print("NO 128 available," + imageProcessingErrors)
+                #else:
+                #    print("BAD" + imageProcessingErrors)
+                #print(str(expedition_id) +  "," + img128 +"," + imageProcessingErrors)
+                #print("."+imageProcessingErrors+".")
 
     except FileNotFoundError:
         raise Exception("SQL file not found")
@@ -92,11 +75,9 @@ def main():
         connection = psycopg2.connect(**db_config)
         print("Connected to the PostgreSQL database")
 
-        sample_photo_sql = "SELECT * FROM network_1.sample_photo ORDER BY id ASC";
+        #sample_photo_sql = "SELECT * FROM network_1.sample_photo where local_identifier = 'CYCLE_2021_ARMS_01_DIAback_P1T_photo_1'";
+        sample_photo_sql = "SELECT * FROM network_1.sample_photo";
         execute_sql_query(connection, sample_photo_sql, 'sample_photo')
-
-        event_photo_sql = "SELECT * FROM network_1.event_photo ORDER BY id ASC";
-        execute_sql_query(connection, event_photo_sql, 'event_photo')
 
     except Exception as e:
         print(f"Error: {e}")
